@@ -2,6 +2,7 @@ package com.acazia.music.services;
 
 import com.acazia.music.models.User;
 import com.acazia.music.repository.UserRepository;
+import com.acazia.music.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

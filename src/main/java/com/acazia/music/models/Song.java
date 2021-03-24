@@ -15,16 +15,17 @@ import javax.persistence.*;
 @Table(name = "song")
 public class Song extends BaseEntity {
 
+    @Column(name = "idgoogle")
+    private String idGoogle;
+
     @Column(name = "name")
     private String name;
 
     @Column(name = "singer")
     private String singer;
 
+    @Column(name = "url")
     private String url;
-
-    @Column(name ="avatar")
-    private String avatar;
 
     @Column(name = "plays")
     private Long plays;
@@ -32,15 +33,4 @@ public class Song extends BaseEntity {
     @Column(name = "type")
     private String type;
 
-    @Column(name = "playlist_id")
-    private Long playListId;
-
-    @Lob
-    private byte[] data;
-
-    public Song(String name, String type, byte[] data) {
-        this.name = name;
-        this.type = type;
-        this.data = data;
-    }
 }

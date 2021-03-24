@@ -1,67 +1,61 @@
 package com.acazia.music.controllers;
 
+import com.acazia.music.base.BaseController;
+import com.acazia.music.base.BaseResponseDto;
+import com.acazia.music.base.CommonConstant;
+import com.acazia.music.dto.produce.BaseListProduceDto;
+import com.acazia.music.dto.produce.SongProduceDto;
 import com.acazia.music.models.Song;
 import com.acazia.music.payload.response.ResponseMessage;
-import com.acazia.music.payload.response.ResponseSong;
-import com.acazia.music.services.SongService;
+import com.acazia.music.repository.SongRepository;
+import com.acazia.music.services.SongServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.File;
 
 @RestController
-@RequestMapping("api/")
-public class SongController {
+@RequestMapping("api/songs")
+public class SongController extends BaseController {
 
     @Autowired
-    private SongService songService;
-    @PostMapping("/upload")
-//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file) {
-        String message = "";
-        try {
-            songService.store(file);
+    private SongServiceImpl songService;
 
-            message = "Uploaded the file successfully: " + file.getOriginalFilename();
-            return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
-        } catch (Exception e) {
-            message = "Could not upload the file: " + file.getOriginalFilename() + "!";
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
+    @Autowired
+    private SongRepository songRepository;
+
+    @GetMapping
+    public ResponseEntity<BaseResponseDto> getAllSongs(
+            @RequestParam(defaultValue = CommonConstant.PageableConstant.PAGE_START) Integer page,
+            @RequestParam(defaultValue = CommonConstant.PageableConstant.ITEM_PER_PAGE) Integer size,
+            @RequestParam(required = false) String[] sort
+    ){
+        Pageable pageable = getPageable(page, size, sort);
+        Page<SongProduceDto> sponsorProduceDtoPage = songService.findAllSong(pageable);
+
+        return success(BaseListProduceDto.build(sponsorProduceDtoPage), "get data successful.");
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @PreAuthorize("hasRole('user') or hasRole('admin')")
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+        Song song = new Song();
+        File convertFile = new File("D:\\My music\\" + file.getOriginalFilename());
+        com.google.api.services.drive.model.File file2 = songService.upLoadFile(convertFile.getName(), convertFile.getAbsolutePath(), "/mp3/m4a/wan/flac");
+        if(file2.isEmpty()){
+            return ResponseEntity.badRequest().body(new ResponseMessage("Could not uploaded because it was missing"));
+        }else {
+            song.setIdGoogle(file2.getId());
+            song.setName(file2.getName());
+            song.setUrl(file2.getWebViewLink());
+            song.setType(file2.getMimeType());
+            songRepository.save(song);
+            return ResponseEntity.badRequest().body(new ResponseMessage("Upload successful"));
         }
-    }
-
-    @GetMapping("/songs")
-    public ResponseEntity<List<ResponseSong>> getListSongs(){
-        List<ResponseSong> song = songService.getAllSong().map(dbSong -> {
-            String fileDownloadUrl = ServletUriComponentsBuilder
-                    .fromCurrentContextPath()
-                    .path("/songs/")
-                    .path(String.valueOf((dbSong.getId())))
-                    .toUriString();
-
-            return new ResponseSong(
-                    dbSong.getName(),
-                    fileDownloadUrl,
-                    dbSong.getType(),
-                    dbSong.getData().length);
-        }).collect(Collectors.toList());
-
-        return ResponseEntity.status(HttpStatus.OK).body(song);
-    }
-
-    @GetMapping("/songs/{id}")
-    public ResponseEntity<byte[]> getSong(@PathVariable Long id){
-        Song song = songService.getSongById(id);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + song.getName() + "\"")
-                .body(song.getData());
     }
 }

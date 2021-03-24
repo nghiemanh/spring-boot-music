@@ -1,36 +1,73 @@
 package com.acazia.music.base;
 
+import com.acazia.music.utils.SecurityUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-@Getter
-@Setter
+@Configuration
+@EnableJpaAuditing(auditorAwareRef = "auditorAware")
+class JpaConfig {
+    @Bean
+    public AuditorAware<String> auditorAware() {
+        return SecurityUtils::getCurrentUserLogin;
+    }
+}
+
+@Data
 @MappedSuperclass
 @SuperBuilder
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @CreatedDate
     @Column(name = "create_date")
     @JsonProperty(value = "create_date")
-    protected LocalDateTime createDate;
+    private LocalDateTime createDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @LastModifiedDate
+    @Column(name = "update_date")
+    @JsonProperty(value = "update_date")
+    private LocalDateTime updateDate;
 
     @CreatedBy
     @Column(name = "created_by")
     @JsonProperty(value = "created_by")
-    protected String createdBy;
+    private String createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    @JsonProperty(value = "updated_by")
+    private String updatedBy;
 
     @Override
     public boolean equals(Object o) {
