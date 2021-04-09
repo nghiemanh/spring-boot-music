@@ -44,16 +44,12 @@ public abstract class BaseEntity implements Serializable {
     protected Long id;
 
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @CreatedDate
     @Column(name = "create_date")
     @JsonProperty(value = "create_date")
     private LocalDateTime createDate;
 
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @LastModifiedDate
     @Column(name = "update_date")
     @JsonProperty(value = "update_date")

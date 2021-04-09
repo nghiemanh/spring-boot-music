@@ -34,7 +34,7 @@ public class DriveService {
     public Drive GetDriveService() {
         Drive service = null;
         try {
-            URL resource = SongServiceImpl.class.getResource("/" + this.serviceAccountKey);
+            URL resource = SongService.class.getResource("/" + this.serviceAccountKey);
             java.io.File key = Paths.get(resource.toURI()).toFile();
             HttpTransport httpTransport = new NetHttpTransport();
             JacksonFactory jsonFactory = new JacksonFactory();

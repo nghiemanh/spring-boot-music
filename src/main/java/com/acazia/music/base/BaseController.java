@@ -10,10 +10,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class BaseController {
+public class BaseController{
 
     protected ResponseEntity<BaseResponseDto> success(Object data, String message) {
         return ResponseEntity.ok(BaseResponseDto.success(data, message));
+    }
+
+    protected ResponseEntity<BaseResponseDto> success(String message) {
+        return ResponseEntity.ok(BaseResponseDto.success(message));
     }
 
     protected Sort.Direction getSortDirection(String direction) {
@@ -27,7 +31,7 @@ public class BaseController {
 
     protected List<Sort.Order> getListOrder(String[] sort) {
         if (Objects.isNull(sort)) {
-            sort = new String[]{"id:desc"};
+            sort = new String[]{"id:ASC"};
         }
         // when haven't sort by fields, then will sort by Id, desc
         List<Sort.Order> orders = new LinkedList<>();

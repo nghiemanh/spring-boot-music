@@ -20,7 +20,7 @@ public class SongMapper {
                 .name(song.getName())
                 .url(song.getUrl())
                 .plays(song.getPlays())
-                .type(song.getType())
+                .single(song.getSingle())
                 .createDate(DateUtils.convertToUtilDate(song.getCreateDate()))
                 .updateDate(DateUtils.convertToUtilDate(song.getUpdateDate()))
                 .createBy(song.getCreatedBy())

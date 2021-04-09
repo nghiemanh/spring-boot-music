@@ -4,13 +4,7 @@ import com.acazia.music.dto.produce.SongProduceDto;
 import com.acazia.music.mapper.SongMapper;
 import com.acazia.music.models.Song;
 import com.acazia.music.repository.SongRepository;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.FileContent;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +15,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
-import java.nio.file.Paths;
 import java.util.Collections;
 
 
 @Service
-public class SongServiceImpl {
+public class SongService {
 
     @Autowired
     private final SongMapper songMapper;
@@ -36,7 +28,7 @@ public class SongServiceImpl {
 
     @Autowired
     private DriveService driveService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(SongServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SongService.class);
 
     @Value("${service_account_email}")
     private String serviceAccountEmail;
@@ -50,10 +42,9 @@ public class SongServiceImpl {
     @Value("${folder_id}")
     private String folderID;
 
-    public SongServiceImpl(SongMapper songMapper) {
+    public SongService(SongMapper songMapper) {
         this.songMapper = songMapper;
     }
-
 
     public File upLoadFile(String fileName, String filePath, String mimeType) {
         File file = new File();
@@ -73,14 +64,29 @@ public class SongServiceImpl {
         return file;
     }
 
-    public Page<SongProduceDto> findAllSong(Pageable pageable){
-        Page<Song> songs = songRepository.findAll(pageable);
-        if (songs.isEmpty()){
+    public Page<SongProduceDto> findAllSong(String name, Pageable pageable) {
+        Page<Song> songs = songRepository.findAllByNameContaining(name, pageable);
+        if (songs.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
         return songs.map(song -> songMapper.toSongProduceDto(song).orElse(null));
     }
 
+    public Page<SongProduceDto> findSongById(Long id, Pageable pageable) {
+        Page<Song> songs = songRepository.findByIdIsLike(id, pageable);
+        if (songs.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList());
+        }
+        return songs.map(song -> songMapper.toSongProduceDto(song).orElse(null));
+    }
+
+    public Page<SongProduceDto> findSongByUserName(String name, Pageable pageable) {
+        Page<Song> song = songRepository.findAllByCreatedByIsLike(name, pageable);
+        if (song.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+        return song.map(songs -> songMapper.toSongProduceDto(songs).orElse(null));
+    }
 
 }
 

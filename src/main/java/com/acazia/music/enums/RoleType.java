@@ -1,7 +1,15 @@
 package com.acazia.music.enums;
 
-public enum RoleType {
-	USER,
-    MODERATOR,
-    ADMIN
+import com.acazia.music.base.IBaseEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+
+@Getter
+@AllArgsConstructor
+public enum RoleType implements IBaseEnum {
+	USER("USER"),
+    ADMIN("ADMIN");
+
+    private final String name;
 }
